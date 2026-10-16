@@ -1,0 +1,313 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <button type="submit" form="form-payment-zerokyc" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-save"></i></button>
+        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if not store_currency_supported %}
+    <div class="alert alert-warning">
+      <i class="fa-solid fa-triangle-exclamation"></i> {{ text_currency_warn }} (<strong>{{ store_currency }}</strong>)
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-header"><i class="fa-solid fa-pencil"></i> {{ text_edit }}</div>
+      <div class="card-body">
+        <form id="form-payment-zerokyc" action="{{ save }}" method="post" data-oc-toggle="ajax">
+          <input type="hidden" name="payment_zerokyc_cron_token" value="{{ payment_zerokyc_cron_token }}" />
+
+          <ul class="nav nav-tabs">
+            <li class="nav-item"><a href="#tab-general" data-bs-toggle="tab" class="nav-link active">{{ tab_general }}</a></li>
+            <li class="nav-item"><a href="#tab-statuses" data-bs-toggle="tab" class="nav-link">{{ tab_statuses }}</a></li>
+            <li class="nav-item"><a href="#tab-diagnostics" data-bs-toggle="tab" class="nav-link">{{ tab_diagnostics }}</a></li>
+          </ul>
+
+          <div class="tab-content mt-3">
+            <div class="tab-pane active" id="tab-general">
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="input-status">{{ entry_status }}</label>
+                <div class="col-sm-10">
+                  <div class="form-check form-switch form-switch-lg">
+                    <input type="hidden" name="payment_zerokyc_status" value="0" />
+                    <input type="checkbox" name="payment_zerokyc_status" value="1" id="input-status" class="form-check-input"{% if payment_zerokyc_status %} checked{% endif %} />
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="input-title">{{ entry_title }}</label>
+                <div class="col-sm-10">
+                  <input type="text" name="payment_zerokyc_title" value="{{ payment_zerokyc_title }}" id="input-title" class="form-control" />
+                  <div class="form-text">{{ help_title }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="input-description">{{ entry_description }}</label>
+                <div class="col-sm-10">
+                  <textarea name="payment_zerokyc_description" rows="2" id="input-description" class="form-control">{{ payment_zerokyc_description }}</textarea>
+                  <div class="form-text">{{ help_description }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3 required">
+                <label class="col-sm-2 col-form-label" for="input-api-key">{{ entry_api_key }}</label>
+                <div class="col-sm-10">
+                  <input type="password" name="payment_zerokyc_api_key" value="{{ payment_zerokyc_api_key }}" id="input-api-key" class="form-control" autocomplete="off" />
+                  <div id="error-api-key" class="invalid-feedback"></div>
+                  <div class="form-text">{{ help_api_key }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3 required">
+                <label class="col-sm-2 col-form-label" for="input-webhook-secret">{{ entry_webhook_secret }}</label>
+                <div class="col-sm-10">
+                  <input type="password" name="payment_zerokyc_webhook_secret" value="{{ payment_zerokyc_webhook_secret }}" id="input-webhook-secret" class="form-control" autocomplete="off" />
+                  <div id="error-webhook-secret" class="invalid-feedback"></div>
+                  <div class="form-text">{{ help_webhook_secret }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="input-base-url">{{ entry_base_url }}</label>
+                <div class="col-sm-10">
+                  <div class="input-group">
+                    <input type="text" name="payment_zerokyc_base_url" value="{{ payment_zerokyc_base_url }}" id="input-base-url" class="form-control" />
+                    <button type="button" id="btn-zerokyc-ping" class="btn btn-info"><i class="fa-solid fa-plug"></i> {{ button_ping }}</button>
+                  </div>
+                  <div class="form-text">{{ help_base_url }}</div>
+                  <div id="zerokyc-ping-result" class="mt-2" style="display:none;"></div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="input-payment-currency">{{ entry_payment_currency }}</label>
+                <div class="col-sm-10">
+                  <select name="payment_zerokyc_payment_currency" id="input-payment-currency" class="form-select">
+                    {% for code, label in currencies %}
+                    <option value="{{ code }}"{% if payment_zerokyc_payment_currency == code %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                  <div class="form-text">{{ help_payment_currency }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="input-ttl">{{ entry_ttl_minutes }}</label>
+                <div class="col-sm-10">
+                  <input type="number" min="5" max="1440" name="payment_zerokyc_ttl_minutes" value="{{ payment_zerokyc_ttl_minutes }}" id="input-ttl" class="form-control" />
+                  <div id="error-ttl" class="invalid-feedback"></div>
+                  <div class="form-text">{{ help_ttl_minutes }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="input-underpaid-tolerance">{{ entry_underpaid_tol }}</label>
+                <div class="col-sm-10">
+                  <input type="number" step="0.01" min="0" max="20" name="payment_zerokyc_underpaid_tolerance" value="{{ payment_zerokyc_underpaid_tolerance }}" id="input-underpaid-tolerance" class="form-control" />
+                  <div class="form-text">{{ help_underpaid_tol }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="input-replay-tolerance">{{ entry_replay_tol }}</label>
+                <div class="col-sm-10">
+                  <input type="number" min="30" max="3600" name="payment_zerokyc_replay_tolerance" value="{{ payment_zerokyc_replay_tolerance }}" id="input-replay-tolerance" class="form-control" />
+                  <div class="form-text">{{ help_replay_tol }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="input-total">{{ entry_total }}</label>
+                <div class="col-sm-10">
+                  <input type="text" name="payment_zerokyc_total" value="{{ payment_zerokyc_total }}" id="input-total" class="form-control" />
+                  <div class="form-text">{{ help_total }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="input-geo-zone">{{ entry_geo_zone }}</label>
+                <div class="col-sm-10">
+                  <select name="payment_zerokyc_geo_zone_id" id="input-geo-zone" class="form-select">
+                    <option value="0">{{ text_all_zones }}</option>
+                    {% for geo_zone in geo_zones %}
+                    <option value="{{ geo_zone.geo_zone_id }}"{% if geo_zone.geo_zone_id == payment_zerokyc_geo_zone_id %} selected{% endif %}>{{ geo_zone.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="input-sort-order">{{ entry_sort_order }}</label>
+                <div class="col-sm-10">
+                  <input type="text" name="payment_zerokyc_sort_order" value="{{ payment_zerokyc_sort_order }}" id="input-sort-order" class="form-control" />
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="input-debug">{{ entry_debug }}</label>
+                <div class="col-sm-10">
+                  <div class="form-check form-switch form-switch-lg">
+                    <input type="hidden" name="payment_zerokyc_debug" value="0" />
+                    <input type="checkbox" name="payment_zerokyc_debug" value="1" id="input-debug" class="form-check-input"{% if payment_zerokyc_debug %} checked{% endif %} />
+                  </div>
+                  <div class="form-text">{{ help_debug }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane" id="tab-statuses">
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_pending_status }}</label>
+                <div class="col-sm-10">
+                  <select name="payment_zerokyc_pending_status_id" class="form-select">
+                    {% for order_status in order_statuses %}
+                    <option value="{{ order_status.order_status_id }}"{% if order_status.order_status_id == payment_zerokyc_pending_status_id %} selected{% endif %}>{{ order_status.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_confirming_status }}</label>
+                <div class="col-sm-10">
+                  <select name="payment_zerokyc_confirming_status_id" class="form-select">
+                    {% for order_status in order_statuses %}
+                    <option value="{{ order_status.order_status_id }}"{% if order_status.order_status_id == payment_zerokyc_confirming_status_id %} selected{% endif %}>{{ order_status.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_paid_status }}</label>
+                <div class="col-sm-10">
+                  <select name="payment_zerokyc_paid_status_id" class="form-select">
+                    {% for order_status in order_statuses %}
+                    <option value="{{ order_status.order_status_id }}"{% if order_status.order_status_id == payment_zerokyc_paid_status_id %} selected{% endif %}>{{ order_status.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_underpaid_status }}</label>
+                <div class="col-sm-10">
+                  <select name="payment_zerokyc_underpaid_status_id" class="form-select">
+                    {% for order_status in order_statuses %}
+                    <option value="{{ order_status.order_status_id }}"{% if order_status.order_status_id == payment_zerokyc_underpaid_status_id %} selected{% endif %}>{{ order_status.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_expired_status }}</label>
+                <div class="col-sm-10">
+                  <select name="payment_zerokyc_expired_status_id" class="form-select">
+                    {% for order_status in order_statuses %}
+                    <option value="{{ order_status.order_status_id }}"{% if order_status.order_status_id == payment_zerokyc_expired_status_id %} selected{% endif %}>{{ order_status.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane" id="tab-diagnostics">
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_webhook_url }}</label>
+                <div class="col-sm-10">
+                  <input type="text" readonly class="form-control" value="{{ webhook_url }}" onclick="this.select();" />
+                  <div class="form-text">{{ help_webhook_url }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_cron_url }}</label>
+                <div class="col-sm-10">
+                  <input type="text" readonly class="form-control" value="{{ cron_url }}" onclick="this.select();" />
+                  <div class="form-text">{{ help_cron_url }}</div>
+                </div>
+              </div>
+
+              <h4 class="mt-4">{{ text_recent_events }}</h4>
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <th>{{ column_event_id }}</th>
+                      <th>{{ column_event_type }}</th>
+                      <th>{{ column_invoice_id }}</th>
+                      <th>{{ column_order_id }}</th>
+                      <th>{{ column_received_at }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% if recent_events %}
+                      {% for ev in recent_events %}
+                      <tr>
+                        <td><code>{{ ev.event_id }}</code></td>
+                        <td>{{ ev.event_type }}</td>
+                        <td><code>{{ ev.invoice_id }}</code></td>
+                        <td>{{ ev.order_id }}</td>
+                        <td>{{ ev.received_at }}</td>
+                      </tr>
+                      {% endfor %}
+                    {% else %}
+                    <tr>
+                      <td colspan="5" class="text-center">{{ text_no_events }}</td>
+                    </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript"><!--
+$('#btn-zerokyc-ping').on('click', function () {
+  var $btn = $(this);
+  var $res = $('#zerokyc-ping-result');
+  $btn.prop('disabled', true);
+  $res.hide();
+  $.ajax({
+    url: '{{ ping_url }}',
+    type: 'post',
+    dataType: 'json',
+    data: {
+      api_key: $('#input-api-key').val(),
+      base_url: $('#input-base-url').val()
+    },
+    success: function (json) {
+      $btn.prop('disabled', false);
+      $res.removeClass('alert alert-success alert-danger')
+          .addClass(json && json.ok ? 'alert alert-success' : 'alert alert-danger')
+          .text(json && json.message ? json.message : 'Unexpected response')
+          .show();
+    },
+    error: function () {
+      $btn.prop('disabled', false);
+      $res.removeClass('alert alert-success alert-danger')
+          .addClass('alert alert-danger')
+          .text('Failed to contact admin ping endpoint')
+          .show();
+    }
+  });
+});
+//--></script>
+{{ footer }}

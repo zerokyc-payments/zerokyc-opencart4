@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.sh text eol=lf
+*.php text eol=lf
+*.tpl text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf

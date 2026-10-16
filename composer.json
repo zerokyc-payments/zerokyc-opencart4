@@ -1,0 +1,30 @@
+{
+  "name": "zerokyc/zerokyc-opencart4",
+  "description": "Official ZeroKYC Pay cryptocurrency payment gateway extension for OpenCart 4.x",
+  "type": "project",
+  "license": "MIT",
+  "homepage": "https://zerokycpay.com",
+  "require": {
+    "php": ">=8.0",
+    "ext-curl": "*",
+    "ext-json": "*",
+    "ext-hash": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.6 || ^10.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "ZeroKYC\\": "extension/zerokyc/system/library/zerokyc/vendor/zerokyc/zkp-sdk-php/src/",
+      "ZeroKyc\\OpenCart\\": "extension/zerokyc/system/library/zerokyc/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "ZeroKyc\\OpenCart\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
+  }
+}

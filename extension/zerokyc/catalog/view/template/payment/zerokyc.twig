@@ -1,0 +1,67 @@
+<div id="zerokyc-payment-box" class="zerokyc-checkout-widget">
+  {% if description %}
+  <p class="zerokyc-description text-muted mb-3">{{ description }}</p>
+  {% endif %}
+  <div id="zerokyc-payment-error" class="alert alert-danger" style="display:none;"></div>
+  <div class="text-end">
+    <button type="button" id="button-confirm" data-loading-text="{{ text_loading }}" class="btn btn-primary">{{ button_confirm }}</button>
+  </div>
+</div>
+<script type="text/javascript"><!--
+(function ($) {
+  var inFlight = false;
+
+  function showError(message) {
+    var $err = $('#zerokyc-payment-error');
+    if ($err.length) {
+      $err.text(message).show();
+    } else {
+      alert(message);
+    }
+  }
+
+  function startZeroKycCheckout() {
+    if (inFlight) {
+      return;
+    }
+    inFlight = true;
+
+    var $btn = $('#button-confirm');
+    var originalHtml = $btn.html();
+    $('#zerokyc-payment-error').hide();
+
+    $.ajax({
+      url: '{{ send_url }}',
+      type: 'post',
+      dataType: 'json',
+      beforeSend: function () {
+        $btn.prop('disabled', true).text('{{ text_loading|e('js') }}');
+      },
+      complete: function () {
+        inFlight = false;
+      },
+      success: function (json) {
+        if (json && json.redirect) {
+          window.location.href = json.redirect;
+          return;
+        }
+        $btn.prop('disabled', false).html(originalHtml);
+        showError((json && json.error) ? json.error : 'Unable to initialize ZeroKYC Pay checkout.');
+      },
+      error: function (xhr) {
+        $btn.prop('disabled', false).html(originalHtml);
+        var msg = 'Unable to connect to payment gateway. Please try again.';
+        if (xhr && xhr.responseJSON && xhr.responseJSON.error) {
+          msg = xhr.responseJSON.error;
+        }
+        showError(msg);
+      }
+    });
+  }
+
+  $('#button-confirm').off('click.zerokyc').on('click.zerokyc', function (e) {
+    e.preventDefault();
+    startZeroKycCheckout();
+  });
+})(window.jQuery);
+//--></script>
